@@ -102,9 +102,14 @@ document.getElementById("save-esp-button").addEventListener('click', () => {
         return ipRegex.test(ip) && ip.split('.').every(octet => parseInt(octet, 10) <= 255);
     };
 
+    const isValidHostname = (hostname) => {
+        const hostnameRegex = /^wled-[a-zA-Z0-9-]{1,59}\.local$/;
+        return hostnameRegex.test(hostname);
+    };
+
     if (handleEmptyFields('esp')) return;
-    if (!isValidIPAddress(esp_ip)) {
-        showAlert( 'esp-error-alert', "IP Address is not valid.", 'esp');
+    if (!isValidIPAddress(esp_ip) && !isValidHostname(esp_ip)) {
+        showAlert('esp-error-alert', "IP Address or hostname is not valid.", 'esp');
         return;
     }
 
