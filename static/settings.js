@@ -1,9 +1,19 @@
 var myOffcanvas = document.getElementById('offcanvasSettings')
 const timeoutRange = document.getElementById('settings_timeout');
 const brightnessRange = document.getElementById('settings_brightness');
+const locateFxRange = document.getElementById('locate_fx_speed');
+const locateFx = document.getElementById('locate_fx');
 const scrollToTop = document.querySelectorAll('.scroll-to-top');
 var language = "en";
 
+function updateLocateFxSpeedOutput() {
+    const locateFxSpeedSlider = document.getElementById("locate_fx_speed");
+    document.getElementById('locate-fx-speed-display').textContent = locateFxSpeedSlider.value;
+    clearTimeout(window.locateFxSpeedTimer);
+    window.locateFxSpeedTimer = setTimeout(() => {
+        addSettings(event);
+    }, 300);
+}
 
 // Function to update brightness output
 function updateBrightnessOutput() {
@@ -41,6 +51,8 @@ function addSettings(event) {
         language = "en"
     }
     const settings = {brightness, timeout, lightMode, colors, language};
+    const locate_fx_speed = locateFxRange.value;
+    const settings = { brightness, timeout, lightMode, colors, language, locate_fx, locate_fx_speed };
     // Save the settings in the database using fetch
     fetch("/api/settings", {
         method: "POST",
@@ -72,6 +84,13 @@ function loadSettings() {
             lightMode = settings.lightMode;
             language = settings.language;
             loadAvailableLanguages();
+
+            document.getElementById('locate-fx-speed-display').textContent = settings.locate_fx_speed;
+            locateFxRange.value = settings.locate_fx_speed;
+            locateFx.checked = Boolean(settings.locate_fx);
+            if (locateFx.checked) {
+                document.getElementById('locate_fx_speed_wrapper').classList.remove('d-none');
+            }
         })
         .catch((error) => console.error(error));
 }
@@ -148,7 +167,17 @@ brightnessRange.addEventListener('input', function () {
 brightnessRange.addEventListener('change', function () {
     updateBrightnessOutput();
 });
-
+locateFxRange.addEventListener('input', function () {
+    updateLocateFxSpeedOutput();
+});
+locateFx.addEventListener('change', function (e) {
+    if (e.target.checked) {
+        document.getElementById('locate_fx_speed_wrapper').classList.remove('d-none');
+    } else {
+        document.getElementById('locate_fx_speed_wrapper').classList.add('d-none');
+    }
+    addSettings();
+});
 
 timeoutRange.addEventListener('input', function () {
     if (this.value < 1) {

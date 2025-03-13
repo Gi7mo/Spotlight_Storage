@@ -52,7 +52,9 @@ def create_combined_db():
                 timeout INTEGER DEFAULT 5,
                 lightMode TEXT DEFAULT 'light',
                 colors TEXT DEFAULT '[#00ff00, #00ff00]',
-                language TEXT DEFAULT 'en'
+                language TEXT DEFAULT 'en',
+                locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0,
+                locate_fx_speed INTEGER DEFAULT 200
             )
         ''')
 
@@ -71,6 +73,11 @@ def create_combined_db():
     if 'language' not in columns:
         cursor.execute("ALTER TABLE settings ADD COLUMN language TEXT DEFAULT 'en'")
         conn_combined.commit()
+    if 'locate_fx' not in columns or 'locate_fx_speed' not in columns:
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0")
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx_speed INTEGER DEFAULT 200")
+        conn_combined.commit()
+
 
     return conn_combined
 
@@ -336,9 +343,9 @@ def update_settings(settings):
         cursor = conn.cursor()
         cursor.execute('DELETE FROM settings')  # Clear existing settings
         cursor.execute('''
-            INSERT INTO settings (brightness, timeout, lightMode, colors, language)
-            VALUES (?, ?, ?, ?, ?)
-        ''', [settings['brightness'], settings['timeout'], settings['lightMode'], settings['colors'], settings['language']])
+            INSERT INTO settings (brightness, timeout, lightMode, colors, language, locate_fx, locate_fx_speed)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', [settings['brightness'], settings['timeout'], settings['lightMode'], settings['colors'], settings['language'], settings['locate_fx'], settings['locate_fx_speed']])
         conn.commit()
     except sqlite3.Error as e:
         print(f"SQLite error while updating settings: {e}")
