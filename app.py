@@ -23,11 +23,11 @@ app.delSegments = ""
 app.timeout = 5
 app.standbyColor = "#00ff00"
 app.locateColor = "#00ff00"
+app.locateFx = False
+app.locateSpeed = 200
 app.config['UPLOAD_FOLDER'] = './images'
 app.previous_positions = []
 app.request_amount = 0
-
-
 
 @app.route('/proxy-image', methods=['GET'])
 def proxy_image():
@@ -114,6 +114,8 @@ def set_global_settings():
     if settings:
         app.brightness = settings['brightness'] / 100
         app.timeout = settings['timeout']
+        app.locateFx = bool(settings['locate_fx'])
+        app.locateSpeed = settings['locate_fx_speed']
 
         colors = settings.get('colors')
         # Assign colors
@@ -282,6 +284,7 @@ def send_request(target_ip, data, timeout=0.2):
         # Handle timeout errors
         print(f"Timeout error: {e}")
 
+    return response
 
 def get_total_leds(ip):
     try:
@@ -294,14 +297,24 @@ def get_total_leds(ip):
         return 1000  # Default value if the request fails
 
 
+def delete_all_segments(ip):
+    try:
+        response = requests.get(f"http://{ip}/json/state")
+        response.raise_for_status()
+        state = response.json()
+            ]
+        }
+        send_request(ip, delete_segments_payload)
+    except requests.RequestException as e:
+        print(f"Error deleting segments: {e}")
+
 def set_leds(led_indices, color, off_color, ip, testing=False):
     # Get the total number of LEDs from the WLED API
     total_leds = get_total_leds(ip)
 
     # Clear existing segments if they exist
     if app.delSegments:
-        off_data = {"on": False, "bri": 0, "transition": 0, "mainseg": 0, "seg": []}
-        send_request(ip, off_data)
+        delete_all_segments(ip)
         time.sleep(0.3)
     else:
         # Turn off all LEDs with the off_color
@@ -329,12 +342,23 @@ def set_leds(led_indices, color, off_color, ip, testing=False):
         # Initialize payload for turning on LEDs with the desired color
         on_payload = {
             "on": True,
-            "seg": {"i": []}
+            "seg": [] if app.locateFx else {"i": []}
         }
 
         # Light up the current LEDs with the desired color
-        for i in led_indices_new:
-            on_payload["seg"]["i"].extend([i, color[1:]])
+        for idx, i in enumerate(led_indices_new):
+            if app.locateFx:
+                on_payload["seg"].append({
+                    "id": idx,
+                    "start": i,
+                    "stop": i+1,
+                    "fx": 1,
+                    "frz": False,
+                    "sx": app.locateSpeed,
+                    "col": [color[1:]]
+                })
+            else:
+                on_payload["seg"]["i"].extend([i, color[1:]])
 
         # Send the API request to set the colors of the LEDs
         send_request(ip, on_payload)

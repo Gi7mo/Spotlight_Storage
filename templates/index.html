@@ -144,6 +144,23 @@
                     <span id="standby_led_color_label" >Standby Color:</span>
                     <input type="color" id="color-standby" name="standby" value="#f0f0f0" class="form-color" style="margin-left: 0.5rem; width: 2rem; height: 1rem; border: none; padding: 0;">
                 </div>
+                
+                <div style="display: flex; align-items: center; margin-top: 10px;">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="locate_fx" value="1">
+                        <label class="form-check-label" for="locate_fx" id="locate_fx_label">Locate Blink</label>
+                    </div>
+                </div>
+                <span id="locate_fx_speed_wrapper" class="d-none">
+                    <div style="display: flex; align-items: center; margin-top: 10px;">
+                        <span id="locate-fx-speed-title">Locate Blink Speed:</span>
+                        <span id="locate-fx-speed-display" style="margin-left: 5px;">50%</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-top: 10px;">
+                        <input type="range" id="locate_fx_speed" name="locate_fx_speed" min="0" max="255" step="1"
+                            class="form-range">
+                    </div>
+                </span>
 
             </div>
             <hr>

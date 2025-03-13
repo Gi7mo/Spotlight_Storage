@@ -54,7 +54,9 @@ def create_combined_db():
                 lightMode TEXT DEFAULT 'light',
                 colors TEXT DEFAULT '[#00ff00, #00ff00]',
                 language TEXT DEFAULT 'en',
-                search_locates BOOLEAN NOT NULL CHECK (search_locates IN (0, 1)) DEFAULT 0
+                search_locates BOOLEAN NOT NULL CHECK (search_locates IN (0, 1)) DEFAULT 0,
+                locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0,
+                locate_fx_speed INTEGER DEFAULT 200
             )
         ''')
 
@@ -81,6 +83,10 @@ def create_combined_db():
     columns = [column[1] for column in cursor.fetchall()]
     if 'article_number' not in columns:
         cursor.execute("ALTER TABLE items ADD COLUMN article_number TEXT NULL")
+        conn_combined.commit()
+    if 'locate_fx' not in columns or 'locate_fx_speed' not in columns:
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0")
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx_speed INTEGER DEFAULT 200")
         conn_combined.commit()
 
     return conn_combined
@@ -347,9 +353,9 @@ def update_settings(settings):
         cursor = conn.cursor()
         cursor.execute('DELETE FROM settings')  # Clear existing settings
         cursor.execute('''
-            INSERT INTO settings (brightness, timeout, lightMode, colors, language, search_locates)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', [settings['brightness'], settings['timeout'], settings['lightMode'], settings['colors'], settings['language'], settings['search_locates']])
+            INSERT INTO settings (brightness, timeout, lightMode, colors, language, search_locates, locate_fx, locate_fx_speed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', [settings['brightness'], settings['timeout'], settings['lightMode'], settings['colors'], settings['language'], settings['search_locates'], settings['locate_fx'], settings['locate_fx_speed']])
         conn.commit()
     except sqlite3.Error as e:
         print(f"SQLite error while updating settings: {e}")

@@ -1,9 +1,19 @@
 var myOffcanvas = document.getElementById('offcanvasSettings')
 const timeoutRange = document.getElementById('settings_timeout');
 const brightnessRange = document.getElementById('settings_brightness');
+const locateFxRange = document.getElementById('locate_fx_speed');
+const locateFx = document.getElementById('locate_fx');
 const scrollToTop = document.querySelectorAll('.scroll-to-top');
 var language = "en";
 
+function updateLocateFxSpeedOutput() {
+    const locateFxSpeedSlider = document.getElementById("locate_fx_speed");
+    document.getElementById('locate-fx-speed-display').textContent = locateFxSpeedSlider.value;
+    clearTimeout(window.locateFxSpeedTimer);
+    window.locateFxSpeedTimer = setTimeout(() => {
+        addSettings(event);
+    }, 300);
+}
 
 // Function to update brightness output
 function updateBrightnessOutput() {
@@ -37,15 +47,16 @@ function addSettings(event) {
     if (lightMode === undefined) {
         lightMode = "light"
     }
-    if (language === undefined){
+    if (language === undefined) {
         language = "en"
     }
     const search_locates = document.getElementById('search_locates').checked ? 1 : 0;
-    const settings = { brightness, timeout, lightMode, colors, language, search_locates };
+    const locate_fx_speed = locateFxRange.value;
+    const settings = { brightness, timeout, lightMode, colors, language, search_locates, locate_fx, locate_fx_speed };
     // Save the settings in the database using fetch
     fetch("/api/settings", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
     })
         .then((response) => response.json())
@@ -61,7 +72,7 @@ function loadSettings() {
     // Fetch the settings from the server
     fetch("/api/settings", {
         method: "GET",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
     })
         .then((response) => response.json())
         .then((settings) => {
@@ -79,6 +90,13 @@ function loadSettings() {
 
             document.getElementById('search_locates').checked = settings.search_locates;
             updateSearchInput(settings.search_locates);
+
+            document.getElementById('locate-fx-speed-display').textContent = settings.locate_fx_speed;
+            locateFxRange.value = settings.locate_fx_speed;
+            locateFx.checked = Boolean(settings.locate_fx);
+            if (locateFx.checked) {
+                document.getElementById('locate_fx_speed_wrapper').classList.remove('d-none');
+            }
         })
         .catch((error) => console.error(error));
 }
@@ -162,7 +180,17 @@ brightnessRange.addEventListener('input', function () {
 brightnessRange.addEventListener('change', function () {
     updateBrightnessOutput();
 });
-
+locateFxRange.addEventListener('input', function () {
+    updateLocateFxSpeedOutput();
+});
+locateFx.addEventListener('change', function (e) {
+    if (e.target.checked) {
+        document.getElementById('locate_fx_speed_wrapper').classList.remove('d-none');
+    } else {
+        document.getElementById('locate_fx_speed_wrapper').classList.add('d-none');
+    }
+    addSettings();
+});
 
 timeoutRange.addEventListener('input', function () {
     if (this.value < 1) {
@@ -186,7 +214,7 @@ myOffcanvas.addEventListener('show.bs.offcanvas', function () {
 })
 
 let currentnventurItemIndex = 0; // Keep track of the current item index
-document.getElementById('cancel-inventur-button').addEventListener('click', function(){
+document.getElementById('cancel-inventur-button').addEventListener('click', function () {
     currentnventurItemIndex = 0;
 })
 document.getElementById("inventur").addEventListener("click", function () {
@@ -216,16 +244,16 @@ document.getElementById("inventur").addEventListener("click", function () {
 
     // Display the first item
     displayItem(currentnventurItemIndex);
-    minus_btn.onclick = function() {
+    minus_btn.onclick = function () {
         const currentItem = itemsData[currentnventurItemIndex];
         handleQuantityChange(currentItem, -1);
         amount.innerHTML = currentItem.quantity - 1;
     };
 
-    plus_btn.onclick = function() {
+    plus_btn.onclick = function () {
         const currentItem = itemsData[currentnventurItemIndex];
         handleQuantityChange(currentItem, + 1);
-        amount.innerHTML = currentItem.quantity + 1 ;
+        amount.innerHTML = currentItem.quantity + 1;
     };
 
 
@@ -282,7 +310,7 @@ document.getElementById("inventur").addEventListener("click", function () {
 
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadSettings();
     populateEspTable();
 });
