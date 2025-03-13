@@ -139,7 +139,9 @@ def esps():
     if request.method == 'GET':
         try:
             esps_data = db.read_esp()  # Fetch ESP data from the database
-            return jsonify(esps_data), 200
+            response = jsonify(esps_data)
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 200
         except Exception as e:
             print(f"Error fetching ESP data: {e}")  # Log the error for debugging
             return jsonify({"error": "An error occurred fetching ESP data"}), 500
@@ -184,16 +186,25 @@ def handle_esp(id):
 
 
 # Route to handle GET and POST requests for items
-@app.route('/api/items', methods=['GET', 'POST'])
+@app.route('/api/items', methods=['GET', 'POST', 'OPTIONS'])
 def items():
     if request.method == 'GET':
         items = db.read_items()
-        return jsonify(items)
+        response = jsonify(items)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    elif request.method == 'OPTIONS':
+        response = jsonify({})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add("Access-Control-Allow-Methods", "OPTIONS,POST,GET")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        return response
     elif request.method == 'POST':
         item = request.get_json()
         id = db.write_item(item)
         item['id'] = id
-        return jsonify(item)
+        response = jsonify(item)
+        response.headers.add('Access-Control-Allow-Origin', '*')
 
 
 # Route to handle GET, PUT, DELETE requests for a specific item
