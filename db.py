@@ -78,15 +78,15 @@ def create_combined_db():
     if 'search_locates' not in columns:
         cursor.execute("ALTER TABLE settings ADD COLUMN search_locates BOOLEAN NOT NULL CHECK (search_locates IN (0, 1)) DEFAULT 0")
         conn_combined.commit()
+    if 'locate_fx' not in columns or 'locate_fx_speed' not in columns:
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0")
+        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx_speed INTEGER DEFAULT 200")
+        conn_combined.commit()
 
     cursor.execute("PRAGMA table_info(items)")
     columns = [column[1] for column in cursor.fetchall()]
     if 'article_number' not in columns:
         cursor.execute("ALTER TABLE items ADD COLUMN article_number TEXT NULL")
-        conn_combined.commit()
-    if 'locate_fx' not in columns or 'locate_fx_speed' not in columns:
-        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx BOOLEAN NOT NULL CHECK (locate_fx IN (0, 1)) DEFAULT 0")
-        cursor.execute("ALTER TABLE settings ADD COLUMN locate_fx_speed INTEGER DEFAULT 200")
         conn_combined.commit()
 
     return conn_combined
