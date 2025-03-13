@@ -313,8 +313,6 @@ def delete_all_segments(ip):
         response = requests.get(f"http://{ip}/json/state")
         response.raise_for_status()
         state = response.json()
-            ]
-        }
         send_request(ip, delete_segments_payload)
     except requests.RequestException as e:
         print(f"Error deleting segments: {e}")
